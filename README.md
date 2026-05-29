@@ -108,10 +108,21 @@ If you use this code, please cite:
 Partial code adapted from AdaLead:
 > Sinai et al., "AdaLead: A simple and robust adaptive greedy search algorithm for sequence design", https://arxiv.org/abs/2010.02141
 
+## Installation
+
+Create the conda environment:
+```bash
+conda env create -f environment.yml
+conda activate ideas
+```
+
 ## Requirements
-- Python 3.8+
-- PyTorch
+- Python 3.10
+- PyTorch >= 2.0 (with CUDA 11.8)
 - NumPy
+- pandas
 - scikit-learn
+- matplotlib
+- tensorboard
+- Jupyter
 - polyleven (for edit distance calculations)
-- Jupyter (for analysis notebook)
