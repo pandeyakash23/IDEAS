@@ -4,6 +4,25 @@ Interpretability Driven Evolutionary Approach for the Design of Biological Seque
 ## Overview
 IDEAS is a sequence optimization framework that uses importance scores from neural networks to guide evolutionary mutations. The importance model is retrained at each design iteration on all accumulated data, allowing it to adapt as the sequence distribution evolves.
 
+## Installation
+
+Create the conda environment:
+```bash
+conda env create -f environment.yml
+conda activate ideas
+```
+
+### Requirements
+- Python 3.10
+- PyTorch >= 2.0 (with CUDA 11.8)
+- NumPy
+- pandas
+- scikit-learn
+- matplotlib
+- tensorboard
+- Jupyter
+- polyleven (for edit distance calculations)
+
 ## Project Structure
 ```
 IDEAS/
@@ -103,26 +122,16 @@ mu = 1                # Expected mutations per sequence
 ```
 
 ## Citation
+
 If you use this code, please cite:
 
-Partial code adapted from AdaLead:
-> Sinai et al., "AdaLead: A simple and robust adaptive greedy search algorithm for sequence design", https://arxiv.org/abs/2010.02141
-
-## Installation
-
-Create the conda environment:
-```bash
-conda env create -f environment.yml
-conda activate ideas
+```bibtex
+@inproceedings{
+anonymous2026textttideas,
+title={\${\textbackslash}texttt\{{IDEAS}\}\$: Interpretability Driven Evolutionary Approach for the Design of Biological Sequences},
+author={Akash Pandey and Wei Chen and Sinan Keten},
+booktitle={Forty-third International Conference on Machine Learning},
+year={2026},
+url={https://openreview.net/forum?id=gaq60U4jvU}
+}
 ```
-
-## Requirements
-- Python 3.10
-- PyTorch >= 2.0 (with CUDA 11.8)
-- NumPy
-- pandas
-- scikit-learn
-- matplotlib
-- tensorboard
-- Jupyter
-- polyleven (for edit distance calculations)
