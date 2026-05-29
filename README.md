@@ -12,35 +12,6 @@ conda env create -f environment.yml
 conda activate ideas
 ```
 
-### Requirements
-- Python 3.10
-- PyTorch >= 2.0 (with CUDA 11.8)
-- NumPy
-- pandas
-- scikit-learn
-- matplotlib
-- tensorboard
-- Jupyter
-- polyleven (for edit distance calculations)
-
-## Project Structure
-```
-IDEAS/
-├── datasets/
-│   └── acp_gravy/
-│       ├── generate_property.py      # Oracle function & data generation
-├── importance_models/
-│   └── acp_gravy/
-│       ├── train_model.py            # Train importance model
-│       ├── contributions_score_generative.py  # Importance scoring
-│       ├── complor.py                # Model architecture
-│       └── model/                    # Saved model weights
-└── ideas/
-    └── acp_gravy/
-        ├── imp_based_motif_level.py  # Main optimization script
-        ├── main.py                   # Adalead algorithm
-        ├── precise_score_comp.ipynb  # Results analysis
-        └── generative_results/       # Output directory
 ```
 
 ## Usage
