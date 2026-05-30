@@ -26,7 +26,7 @@ To regenerate the categorical variables:
 - Run make_data.ipynb
 ```
 
-### Step 2: Train Importance Model (COLO)
+### Step 2: Train Importance Model (COLOR)
 If you need to retrain the importance model from scratch:
 ```bash
 cd importance_models/<dataset_name>
