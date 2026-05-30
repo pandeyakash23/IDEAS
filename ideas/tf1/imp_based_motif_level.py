@@ -1,53 +1,52 @@
-from adalead_akash import Adalead
+from main import Adalead
 import sys
+import os
 import numpy as np
 import argparse
 import time
-# sys.path.append("/home/apa2237/generative_model_work/oracle_models/amp")
-sys.path.append("/home/apa2237/generative_model_work/datasets/tf_ARX_L343Q_R1_8mers/")
-sys.path.append("/home/apa2237/generative_model_work/importance_models/tf_ARX_L343Q_R1_8mers/")
-# from produce_output import initalize,test
+
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get the IDEAS root directory (two levels up from ideas/tf1/)
+IDEAS_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
+
+# Add paths relative to IDEAS root
+sys.path.append(os.path.join(IDEAS_ROOT, 'datasets', 'tf1'))
+sys.path.append(os.path.join(IDEAS_ROOT, 'importance_models', 'tf1'))
+
 from generate_property import output_property_oracle
 from generate_property import onehotseq
 from contributions_score_generative import initalize as initalize_contri
 import json
-
-
-import json
-
 import pickle
-# parser = argparse.ArgumentParser()
 
 # Command-line argument parsing
-parser = argparse.ArgumentParser(description='Run Adalead with specified temperature.')
+parser = argparse.ArgumentParser(description='Run Adalead with specified temperature for TF1 binding optimization.')
 parser.add_argument('--temp', type=float, default=1, help='Temperature parameter for Adalead')
 parser.add_argument('--device', type=str, default='cuda')
 input_args = parser.parse_args()
 
-print(f'========= Temperature = {input_args.temp} ===========')
+print(f'========= TF1 Binding Optimization - Temperature = {input_args.temp} ===========')
 
-alphabet = np.load('/home/apa2237/generative_model_work/datasets/tf_ARX_L343Q_R1_8mers/categorical_variables.npy', allow_pickle=True).tolist()
-data_path = "/home/apa2237/generative_model_work/datasets/tf_ARX_L343Q_R1_8mers/"
-output_property_oracle = output_property_oracle()
+# Data path relative to IDEAS root
+data_path = os.path.join(IDEAS_ROOT, 'datasets', 'tf1')
 
-top_per = 30
+alphabet = np.load(os.path.join(data_path, 'categorical_variables.npy'), allow_pickle=True).tolist()
 
-data_path = "/home/apa2237/generative_model_work/datasets/tf_ARX_L343Q_R1_8mers/"
+# Initialize oracle
+oracle = output_property_oracle()
 
-seq_start = np.load(f'{data_path}/seq_test.npy', allow_pickle=True).reshape((-1,1))
-y_start = np.load(f'{data_path}/y_test.npy', allow_pickle=True).reshape((-1,1))
+seq_start = np.load(os.path.join(data_path, 'seq_test.npy'), allow_pickle=True).reshape((-1,1))
+y_start = np.load(os.path.join(data_path, 'y_test.npy'), allow_pickle=True).reshape((-1,1))
 
 print('Before filtering',len(seq_start), len(y_start))
 print('Mean before', np.mean(y_start))
 print('Min before', np.min(y_start))
 print('Max before', np.max(y_start))
 
-cap = max(y_start)
-floor = min(y_start)
 cutoff = 0.2
 print('Cutoff', cutoff)
 below_idx = (y_start<cutoff)
-# print('Below_idx', np.sum(below_idx*1))
 print(below_idx.shape,seq_start.shape)
 
 seq_start = seq_start[below_idx]
@@ -68,20 +67,23 @@ class args():
     device = input_args.device
     max_len = 8
 model_args = args()
-# model = initalize(model_args)
 
-# print(model)
 print(model_args.device)
 
 seq_start = seq_start.tolist()
-start_fitness = output_property_oracle.output_property(seq_start).tolist()
-# start_fitness = test(model,seq_start,model_args).tolist()
+start_fitness = oracle.output_property(seq_start).tolist()
 
 
 start_num_samples = len(seq_start)
 
 ### loading contribution score model
 model_contri, criterion_contri,optimizer_contri = initalize_contri(model_args.device)
+
+### loading initial training data for importance model retraining
+initial_ohe = np.load(os.path.join(data_path, 'x_train.npy'), allow_pickle=True)
+initial_y = np.load(os.path.join(data_path, 'y_train.npy'), allow_pickle=True)
+initial_seq_len = np.load(os.path.join(data_path, 'len_train.npy'), allow_pickle=True)
+print(f'Loaded initial training data: {initial_ohe.shape[0]} samples for importance model retraining')
 
 # all_ng = [3,5,10,20,50,100,200,500]
 all_ng = [20,50,100]
@@ -91,6 +93,7 @@ rounds = 10 ## number of generation iteration in each trials
 
 adalead_imp_code_book = {}
 adalead_new_sequences = {}
+adalead_iteration_times = {}
 
 def set_seeds(trial):
     seed = trial
@@ -113,20 +116,25 @@ for count_ng,ng in enumerate(all_ng):
     threshold =  0.05,
     rho = 0,
     eval_batch_size = 20,
-    model_contri = model_contri, 
+    model_contri = model_contri,
     criterion_contri = criterion_contri,
-    optimizer_contri =  optimizer_contri,
+    optimizer_contri = optimizer_contri,
     motif_size = 1,
-    motif_based=True)
-    
+    motif_based=True,
+    initial_ohe = initial_ohe,
+    initial_y = initial_y,
+    initial_seq_len = initial_seq_len,
+    retrain_epochs = 50)
+
     is_imp_based = True
     temp = input_args.temp ## temp value
 
 
     small_code_book = np.zeros((num_trials, rounds+1, 3))
-    
+    iteration_times = np.zeros((num_trials, rounds))
+
     new_sequences = {trial: {} for trial in range(num_trials)}
-    
+
     for trial in range(num_trials):
         starting_mean = np.mean(y_start[0:ng])
         set_seeds(trial)
@@ -137,8 +145,13 @@ for count_ng,ng in enumerate(all_ng):
         small_code_book[trial, 0, :] = [m,maxx,starting_mean]
         print(f'At the beginning of starting, Mean:{m}, Max:{maxx} ')
         for i in range(1,rounds+1):
+            iter_start_time = time.time()
             new_seq, new_prop = adalead_algo.propose_sequences(bundle,\
                 is_imp_based, temp)
+            iter_end_time = time.time()
+            iter_elapsed = iter_end_time - iter_start_time
+            iteration_times[trial, i-1] = iter_elapsed
+
             bundle["sequence"].extend(new_seq.tolist())
             bundle["true_score"].extend(new_prop.tolist())
             m, maxx, new_mean = np.mean(np.array(bundle["true_score"])), \
@@ -149,13 +162,17 @@ for count_ng,ng in enumerate(all_ng):
             new_sequences[trial][i] = new_seq.tolist()
 
             small_code_book[trial,i,:] = [m,maxx,new_mean]
-            print(f'Iteration {i}, Mean:{m}, Max:{maxx}, New Samples: {new_mean} ')   
+            print(f'Iteration {i}, Mean:{m}, Max:{maxx}, New Samples: {new_mean}, Time: {iter_elapsed:.4f}s')
 
         # print(new_seq)
-            
+
     adalead_imp_code_book[ng] = small_code_book
     adalead_new_sequences[ng] = new_sequences  # <-- add this
+    adalead_iteration_times[ng] = iteration_times
     # print(aaaa)
 
-    np.save(f'./generative_results/our_{input_args.temp}', adalead_imp_code_book)
-    np.save(f'./generative_results/sequences_our_{input_args.temp}', adalead_new_sequences)
+    results_dir = os.path.join(SCRIPT_DIR, 'generative_results')
+    os.makedirs(results_dir, exist_ok=True)
+    np.save(os.path.join(results_dir, f'our_{input_args.temp}'), adalead_imp_code_book)
+    np.save(os.path.join(results_dir, f'sequences_our_{input_args.temp}'), adalead_new_sequences)
+    np.save(os.path.join(results_dir, f'our_iteration_times_{input_args.temp}'), adalead_iteration_times)
