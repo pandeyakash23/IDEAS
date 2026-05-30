@@ -17,29 +17,22 @@ conda activate ideas
 ## Usage
 
 ### Step 1: Generate/Prepare Data
-Ensure your dataset files are in `datasets/acp_gravy/`:
-- `x_train.npy`, `y_train.npy`, `len_train.npy` - Training data (one-hot encoded)
-- `x_test.npy`, `y_test.npy`, `len_test.npy` - Test data
-- `seq_test.npy` - Test sequences (string format)
-- `categorical_variables.npy` - Amino acid alphabet
-
 To regenerate the categorical variables:
-```bash
-cd datasets/acp_gravy
-python generate_property.py
+- Enter datasets/<dataset_name>
+- Run make_data.ipynb
 ```
 
-### Step 2: Train Importance Model (Optional)
+### Step 2: Train Importance Model (COLO)
 If you need to retrain the importance model from scratch:
 ```bash
-cd importance_models/acp_gravy
+cd importance_models/<dataset_name>
 python train_model.py --num_epochs 2500 --device cuda
 ```
 
 ### Step 3: Run Sequence Optimization
 Run the IDEAS optimization algorithm:
 ```bash
-cd ideas/acp_gravy
+cd ideas/<dataset_name>
 python imp_based_motif_level.py --temp 1.0 --device cuda
 ```
 
@@ -50,7 +43,7 @@ python imp_based_motif_level.py --temp 1.0 --device cuda
 | `--device` | str | 'cuda' | Device for computation ('cuda' or 'cpu') |
 
 **What it does:**
-- Loads test sequences and filters bottom 40th percentile as starting pool
+- Loads starting pool of sequences
 - Runs 10 independent trials with 10 design iterations each
 - At each iteration: retrains importance model (50 epochs) on all data, then proposes new sequences
 - Tests sample sizes: 20, 50, 100 sequences per batch
@@ -64,7 +57,7 @@ python imp_based_motif_level.py --temp 1.0 --device cuda
 ### Step 4: Analyze Results
 Open and run the Jupyter notebook for comparative analysis:
 ```bash
-cd ideas/acp_gravy
+cd ideas/<dataset_name>
 jupyter notebook precise_score_comp.ipynb
 ```
 
@@ -77,19 +70,11 @@ This notebook calculates:
 
 ### In `imp_based_motif_level.py`:
 ```python
-top_per = 40          # Percentile for filtering starting sequences
 num_trials = 10       # Number of independent runs
 rounds = 10           # Design iterations per trial
 all_ng = [20,50,100]  # Batch sizes to test
 retrain_epochs = 50   # Epochs for importance model retraining
 motif_size = 1        # Motif size for mutations
-```
-
-### In `main.py` (Adalead class):
-```python
-threshold = 0.05      # Fitness threshold for parent selection
-recomb_rate = 0.2     # Recombination rate
-mu = 1                # Expected mutations per sequence
 ```
 
 ## Citation
