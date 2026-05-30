@@ -129,7 +129,7 @@ for count_ng,ng in enumerate(all_ng):
     model_contri = model_contri,
     criterion_contri = criterion_contri,
     optimizer_contri = optimizer_contri,
-    motif_size = 15,
+    motif_size = 10,
     motif_based=True,
     initial_ohe = initial_ohe,
     initial_y = initial_y,
