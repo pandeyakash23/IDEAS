@@ -1,6 +1,9 @@
 # Model weights
 *.pth
 
+# Large data files (>100MB GitHub limit)
+datasets/aav/full_data.csv
+
 # Python
 __pycache__/
 *.py[cod]
