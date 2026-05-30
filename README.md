@@ -4,6 +4,10 @@ Interpretability Driven Evolutionary Approach for the Design of Biological Seque
 ## Overview
 IDEAS is a sequence optimization framework that uses importance scores from neural networks to guide evolutionary mutations. The importance model is retrained at each design iteration on all accumulated data, allowing it to adapt as the sequence distribution evolves.
 
+## Architecture
+
+![IDEAS Architecture](arch.png)
+
 ## Installation
 
 Create the conda environment:
