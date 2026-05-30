@@ -361,12 +361,12 @@ class Adalead():
 
                         # Stop when we generate new child that has never been seen
                         # before
-                        if (
-                            child not in measured_sequence_set
-                            and child not in sequences
-                        ):
-                            child_idxs.append(idx)
-                            children.append(child)
+                        # if (
+                        #     child not in measured_sequence_set
+                        #     and child not in sequences
+                        # ):
+                        child_idxs.append(idx)
+                        children.append(child)
 
 
                     fitnesses = oracle.output_property(children)

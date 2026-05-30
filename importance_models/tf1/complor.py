@@ -244,8 +244,11 @@ class complor_network(nn.Module):
         # self.overall_imp_segments = overall_imp_segments
         out = x
         
+        out = self.positional_encoding(out.permute(1,0,2),self.rank) ##[L,N,f]        
+        out = out.permute(1,2,0)
         
-        out = torch.permute(out,(0,2,1)) ## making it (N, f, L)
+        
+        # out = torch.permute(out,(0,2,1)) ## making it (N, f, L)
         
         self.out_1, self.pool_1,p_1 = self.make_p(out,x.permute(0,2,1),seq_len,1)
         self.out_1.register_hook(initial_q)
