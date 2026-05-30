@@ -3,6 +3,8 @@
 
 # Large data files (>100MB GitHub limit)
 datasets/aav/full_data.csv
+datasets/aav/data.npy
+datasets/aav/data_dict.npy
 
 # Python
 __pycache__/
